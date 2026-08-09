@@ -18,21 +18,37 @@
   --danger:#ff9cac;
 }
 
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  min-height:100%;
+}
 
 body{
-  margin:0;
   min-height:100vh;
   background:
-    radial-gradient(circle at top,#3b1730 0,#160b18 38%,#0b0710 72%);
+    radial-gradient(
+      circle at top,
+      #3b1730 0,
+      #160b18 38%,
+      #0b0710 72%
+    );
   color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Noto Sans TC",
+    sans-serif;
 }
 
 .wrap{
   max-width:640px;
   margin:auto;
-  padding:26px 18px 70px;
+  padding:28px 18px 70px;
 }
 
 .brand{
@@ -43,22 +59,26 @@ body{
 
 .card{
   margin-top:14px;
+  padding:23px;
   background:rgba(26,17,29,.96);
   border:1px solid var(--line);
   border-radius:24px;
-  padding:23px;
   box-shadow:0 18px 55px #0008;
 }
 
 h1{
-  font-size:28px;
   margin:8px 0;
+  font-size:28px;
 }
 
 h2{
+  margin:12px 0 20px;
   font-size:22px;
   line-height:1.5;
-  margin:12px 0 20px;
+}
+
+p{
+  margin-top:10px;
 }
 
 .muted{
@@ -66,15 +86,1007 @@ h2{
   line-height:1.65;
 }
 
-button,input{
+.small{
+  font-size:13px;
+}
+
+.tag{
+  font-size:12px;
+  color:#ffa7c6;
+}
+
+button,
+input{
   width:100%;
   border-radius:15px;
   font-size:16px;
 }
 
 button{
+  margin:7px 0;
+  padding:15px;
   border:1px solid #613650;
   background:#281825;
   color:white;
+  cursor:pointer;
+  text-align:left;
+}
+
+button:active{
+  transform:scale(.99);
+}
+
+.primary{
+  background:var(--accent);
+  border-color:var(--accent);
+  text-align:center;
+  font-weight:700;
+}
+
+.secondary{
+  text-align:center;
+}
+
+.choice{
+  line-height:1.5;
+}
+
+.choice strong{
+  display:inline-block;
+  width:30px;
+  color:#ff9dbf;
+}
+
+input{
   padding:15px;
-  margin:7px 0
+  border:1px solid #4b2f48;
+  background:#120b14;
+  color:white;
+  letter-spacing:.18em;
+  text-align:center;
+  text-transform:uppercase;
+}
+
+.room{
+  margin:18px 0;
+  font-size:34px;
+  font-weight:800;
+  letter-spacing:.18em;
+  text-align:center;
+  color:#ffb3cf;
+}
+
+.status{
+  margin:12px 0;
+  padding:12px;
+  border:1px solid #493147;
+  border-radius:14px;
+  color:var(--muted);
+}
+
+.ok{
+  color:var(--good);
+}
+
+.danger{
+  color:var(--danger);
+}
+
+.progress{
+  height:7px;
+  margin:17px 0;
+  overflow:hidden;
+  background:#2b1b2d;
+  border-radius:99px;
+}
+
+.progress > div{
+  height:100%;
+  background:var(--accent);
+  transition:width .3s ease;
+}
+
+.result{
+  padding:12px 0;
+  border-bottom:1px solid var(--line);
+  line-height:1.55;
+}
+
+code{
+  display:block;
+  padding:12px;
+  border:1px solid #38263a;
+  border-radius:12px;
+  background:#100b12;
+  color:#ffc2d7;
+  word-break:break-all;
+}
+
+.loading{
+  text-align:center;
+  padding:20px 0;
+}
+
+.heart{
+  font-size:40px;
+  margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<main class="wrap">
+
+  <div class="brand">
+    COUPLE · CHOICE
+  </div>
+
+  <section class="card" id="app">
+
+    <div class="loading">
+      <div class="heart">♥</div>
+
+      <h1>正在連線…</h1>
+
+      <p class="muted">
+        正在建立匿名遊戲身分。
+      </p>
+    </div>
+
+  </section>
+
+</main>
+
+
+<script type="module">
+
+import {
+  initializeApp
+}
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+
+
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  onSnapshot,
+  serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+
+/* =========================
+   Firebase 設定
+========================= */
+
+const firebaseConfig = {
+
+  apiKey:
+  "AIzaSyA7gw8EKzbWPYNj-cvje6oG2-474J2ZnCM",
+
+  authDomain:
+  "my-test-choose-one.firebaseapp.com",
+
+  projectId:
+  "my-test-choose-one",
+
+  storageBucket:
+  "my-test-choose-one.firebasestorage.app",
+
+  messagingSenderId:
+  "612547065937",
+
+  appId:
+  "1:612547065937:web:a71f60d6d74a82874ae070"
+
+};
+
+
+/* =========================
+   題目
+========================= */
+
+const QUESTIONS = [
+
+  {
+    q:
+    "如果老公今晚突然說想玩一個平常絕對不敢玩的遊戲，你會選？",
+
+    a:
+    "完全由老公決定今晚的規則",
+
+    b:
+    "老公只能決定一件事，其餘由老婆掌控"
+  },
+
+  {
+    q:
+    "如果只能選一個，你比較想要？",
+
+    a:
+    "老公知道你心裡一個從沒說出口的幻想",
+
+    b:
+    "老公親眼看到你實現一個從沒想過會實現的情境"
+  },
+
+  {
+    q:
+    "如果有一個晚上可以暫時拋開平常的夫妻角色，你會選？",
+
+    a:
+    "老公扮演完全陌生的人",
+
+    b:
+    "老婆扮演完全陌生的人"
+  },
+
+  {
+    q:
+    "老公說：「今晚妳只能選一個權利。」",
+
+    a:
+    "妳可以命令老公做一件事",
+
+    b:
+    "妳可以拒絕老公提出的一件要求"
+  },
+
+  {
+    q:
+    "如果老公可以偷偷知道一件事，你比較怕他知道哪個？",
+
+    a:
+    "妳曾經想像過的刺激情境",
+
+    b:
+    "妳曾經偷偷期待他做的事情"
+  },
+
+  {
+    q:
+    "如果今晚的遊戲有一個「公開挑戰」，妳會選？",
+
+    a:
+    "讓老公知道妳最想被怎麼撩",
+
+    b:
+    "讓老公決定怎麼撩妳"
+  },
+
+  {
+    q:
+    "如果可以交換一次主導權，妳想？",
+
+    a:
+    "今晚完全由妳制定規則",
+
+    b:
+    "今晚完全交給老公制定規則"
+  },
+
+  {
+    q:
+    "老公問：「如果我真的照妳的幻想做一次，妳敢嗎？」",
+
+    a:
+    "敢，但只能做到妳說出口的程度",
+
+    b:
+    "敢，而且不可以提前告訴妳全部內容"
+  },
+
+  {
+    q:
+    "如果有一個「只能選一次」的特殊體驗，妳會選？",
+
+    a:
+    "做一件現實中絕對不會主動做的事",
+
+    b:
+    "讓老公做一件現實中絕對不敢主動做的事"
+  },
+
+  {
+    q:
+    "最後一題，老公問妳：妳真正想要的是哪一種刺激？",
+
+    a:
+    "「被老公完全看穿」的刺激",
+
+    b:
+    "「完全不知道接下來會發生什麼」的刺激"
+  }
+
+];
+
+
+/* =========================
+   Firebase 啟動
+========================= */
+
+const firebaseApp =
+initializeApp(firebaseConfig);
+
+const auth =
+getAuth(firebaseApp);
+
+const db =
+getFirestore(firebaseApp);
+
+const app =
+document.querySelector("#app");
+
+let currentUser = null;
+
+let unsubscribe = null;
+
+
+/* =========================
+   小工具
+========================= */
+
+function escapeHTML(text){
+
+  return String(text ?? "")
+  .replace(
+    /[&<>"']/g,
+    char => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[char])
+  );
+
+}
+
+
+function createRoomCode(){
+
+  const chars =
+  "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  let result = "";
+
+  for(let i=0;i<6;i++){
+
+    result +=
+    chars[
+      Math.floor(
+        Math.random() *
+        chars.length
+      )
+    ];
+
+  }
+
+  return result;
+
+}
+
+
+function baseURL(){
+
+  return (
+    location.origin +
+    location.pathname
+  );
+
+}
+
+
+function showError(
+  title,
+  error
+){
+
+  console.error(error);
+
+  app.innerHTML = `
+
+    <h1>
+      ${escapeHTML(title)}
+    </h1>
+
+    <p class="muted danger">
+      ${escapeHTML(
+        error?.message ||
+        error
+      )}
+    </p>
+
+    <button
+      class="secondary"
+      id="errorHome"
+    >
+      回首頁
+    </button>
+
+  `;
+
+  document
+  .querySelector("#errorHome")
+  .onclick = () => {
+
+    location.href =
+    baseURL();
+
+  };
+
+}
+
+
+/* =========================
+   首頁
+========================= */
+
+function home(){
+
+  if(unsubscribe){
+
+    unsubscribe();
+
+    unsubscribe = null;
+
+  }
+
+  const params =
+  new URLSearchParams(
+    location.search
+  );
+
+  const roomFromURL =
+  params.get("room") || "";
+
+
+  app.innerHTML = `
+
+    <h1>
+      今晚只能選一個
+    </h1>
+
+    <p class="muted">
+
+      老公建立一個遊戲房間，
+      再把專屬連結透過 LINE
+      傳給老婆。
+
+    </p>
+
+    <p class="muted">
+
+      老婆每選一題，
+      老公這邊就會即時看到答案。
+
+    </p>
+
+
+    <button
+      class="primary"
+      id="createRoom"
+    >
+      老公｜建立新房間
+    </button>
+
+
+    <div class="status">
+
+      老婆也可以直接輸入
+      6 碼房間碼
+
+    </div>
+
+
+    <input
+      id="roomCode"
+      maxlength="6"
+      value="${escapeHTML(roomFromURL)}"
+      placeholder="例如 A7K92Q"
+    >
+
+
+    <button
+      id="joinRoom"
+    >
+      老婆｜加入房間
+    </button>
+
+  `;
+
+
+  document
+  .querySelector("#createRoom")
+  .onclick =
+  createRoom;
+
+
+  document
+  .querySelector("#joinRoom")
+  .onclick = () => {
+
+    const value =
+    document
+    .querySelector("#roomCode")
+    .value
+    .trim()
+    .toUpperCase();
+
+    joinRoom(value);
+
+  };
+
+}
+
+
+/* =========================
+   老公建立房間
+========================= */
+
+async function createRoom(){
+
+  app.innerHTML = `
+
+    <h1>
+      建立房間中…
+    </h1>
+
+    <p class="muted">
+      正在產生專屬房間碼。
+    </p>
+
+  `;
+
+
+  try{
+
+    for(
+      let attempt=0;
+      attempt<6;
+      attempt++
+    ){
+
+      const room =
+      createRoomCode();
+
+
+      const ref =
+      doc(
+        db,
+        "rooms",
+        room
+      );
+
+
+      const existing =
+      await getDoc(ref);
+
+
+      if(existing.exists()){
+
+        continue;
+
+      }
+
+
+      await setDoc(
+        ref,
+        {
+
+          hostUid:
+          currentUser.uid,
+
+          wifeUid:
+          null,
+
+          status:
+          "waiting",
+
+          answers:
+          [],
+
+          createdAt:
+          serverTimestamp(),
+
+          updatedAt:
+          serverTimestamp()
+
+        }
+      );
+
+
+      history.replaceState(
+        {},
+        "",
+        `${baseURL()}?host=1&room=${room}`
+      );
+
+
+      hostView(room);
+
+      return;
+
+    }
+
+
+    throw new Error(
+      "無法產生房間碼，請重新整理後再試。"
+    );
+
+  }
+  catch(error){
+
+    showError(
+      "建立房間失敗",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================
+   老公端畫面
+========================= */
+
+function hostView(room){
+
+  if(unsubscribe){
+
+    unsubscribe();
+
+  }
+
+
+  const ref =
+  doc(
+    db,
+    "rooms",
+    room
+  );
+
+
+  unsubscribe =
+  onSnapshot(
+
+    ref,
+
+    snapshot => {
+
+      if(
+        !snapshot.exists()
+      ){
+
+        showError(
+          "房間不存在",
+          "這個房間可能已經被刪除。"
+        );
+
+        return;
+
+      }
+
+
+      const data =
+      snapshot.data();
+
+
+      if(
+        data.hostUid !==
+        currentUser.uid
+      ){
+
+        showError(
+          "不是老公端",
+          "這支裝置不是這個房間的建立者。"
+        );
+
+        return;
+
+      }
+
+
+      const answers =
+      Array.isArray(
+        data.answers
+      )
+      ? data.answers
+      : [];
+
+
+      const shareURL =
+
+      `${baseURL()}?room=${room}`;
+
+
+      let rows = "";
+
+
+      QUESTIONS.forEach(
+        (question,index) => {
+
+          const answer =
+          answers[index];
+
+
+          if(!answer){
+
+            rows += `
+
+              <div class="result">
+
+                <span class="tag">
+                  第 ${index+1} 題
+                </span>
+
+                <br>
+
+                等待老婆選擇…
+
+              </div>
+
+            `;
+
+          }
+          else{
+
+            const text =
+
+            answer === "A"
+
+            ? question.a
+
+            : question.b;
+
+
+            rows += `
+
+              <div class="result">
+
+                <span class="tag">
+                  第 ${index+1} 題
+                </span>
+
+                <br>
+
+                <strong>
+                  ${answer}
+                </strong>
+
+                ·
+
+                ${escapeHTML(text)}
+
+              </div>
+
+            `;
+
+          }
+
+        }
+      );
+
+
+      app.innerHTML = `
+
+        <div class="small muted">
+          老公端
+        </div>
+
+
+        <div class="room">
+          ${room}
+        </div>
+
+
+        <div class="status">
+
+          ${
+            data.wifeUid
+
+            ? `
+              <span class="ok">
+                ● 老婆已加入房間
+              </span>
+            `
+
+            : `
+              ○ 等待老婆從 LINE
+              打開遊戲連結…
+            `
+          }
+
+        </div>
+
+
+        <p class="muted">
+
+          把下面的遊戲連結
+          傳給老婆：
+
+        </p>
+
+
+        <code>
+          ${escapeHTML(shareURL)}
+        </code>
+
+
+        <button
+          class="primary"
+          id="shareGame"
+        >
+          分享／複製到 LINE
+        </button>
+
+
+        <div class="status">
+
+          遊戲進度：
+
+          ${answers.length}
+
+          /
+
+          ${QUESTIONS.length}
+
+        </div>
+
+
+        ${rows}
+
+
+        <button
+          class="secondary"
+          id="backHome"
+        >
+          回首頁
+        </button>
+
+      `;
+
+
+      document
+      .querySelector("#shareGame")
+      .onclick = () => {
+
+        shareGame(
+          room,
+          shareURL
+        );
+
+      };
+
+
+      document
+      .querySelector("#backHome")
+      .onclick = () => {
+
+        history.replaceState(
+          {},
+          "",
+          baseURL()
+        );
+
+        home();
+
+      };
+
+    },
+
+
+    error => {
+
+      showError(
+        "讀取房間失敗",
+        error
+      );
+
+    }
+
+  );
+
+}
+
+
+/* =========================
+   老婆加入
+========================= */
+
+async function joinRoom(room){
+
+  if(
+    !room ||
+    room.length !== 6
+  ){
+
+    alert(
+      "請輸入 6 碼房間碼。"
+    );
+
+    return;
+
+  }
+
+
+  app.innerHTML = `
+
+    <h1>
+      加入房間中…
+    </h1>
+
+    <p class="muted">
+      房間 ${escapeHTML(room)}
+    </p>
+
+  `;
+
+
+  try{
+
+    const ref =
+    doc(
+      db,
+      "rooms",
+      room
+    );
+
+
+    const snapshot =
+    await getDoc(ref);
+
+
+    if(
+      !snapshot.exists()
+    ){
+
+      throw new Error(
+        "找不到這個房間，請確認房間碼。"
+      );
+
+    }
+
+
+    const data =
+    snapshot.data();
+
+
+    /*
+      如果老公自己開到老婆連結，
+      自動回老公端。
+    */
+
+    if(
+      data.hostUid ===
+      currentUser.uid
+    ){
+
+      history.replaceState(
+        {},
+        "",
+        `${baseURL()}?host=1&room=${room}`
+      );
+
+      hostView(room);
+
+      return;
+
+    }
+
+
+    /*
+      已被其他老婆裝置
